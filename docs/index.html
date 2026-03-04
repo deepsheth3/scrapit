@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scrapit — YAML-driven web scraper framework</title>
+  <meta name="description" content="Scrape any website with just a YAML file. No code needed for new targets." />
+  <meta property="og:title" content="Scrapit" />
+  <meta property="og:description" content="Scrape any website with just a YAML file." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --bg2:       #161b22;
+      --bg3:       #21262d;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --accent:    #58a6ff;
+      --accent2:   #3fb950;
+      --accent3:   #f78166;
+      --radius:    10px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── NAV ──────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 60px;
+      background: rgba(13,17,23,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-weight: 700; font-size: 1.1rem; color: var(--text); }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 1.5rem; font-size: .9rem; color: var(--muted); }
+    .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .nav-gh {
+      display: flex; align-items: center; gap: .4rem;
+      padding: .4rem .9rem; border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg3); color: var(--text);
+      font-size: .85rem; font-weight: 500;
+      transition: border-color .15s;
+    }
+    .nav-gh:hover { border-color: var(--accent); text-decoration: none; }
+
+    /* ── HERO ─────────────────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 6rem 1.5rem 5rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(88,166,255,.12), transparent);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-block;
+      padding: .25rem .75rem; border-radius: 99px;
+      border: 1px solid rgba(88,166,255,.3);
+      background: rgba(88,166,255,.08);
+      color: var(--accent); font-size: .8rem; font-weight: 500;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 700; letter-spacing: -.03em;
+      line-height: 1.1; margin-bottom: 1.25rem;
+    }
+    h1 span { color: var(--accent); }
+    .hero-sub {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--muted); max-width: 560px; margin: 0 auto 2.5rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .65rem 1.4rem; border-radius: var(--radius);
+      font-size: .95rem; font-weight: 500;
+      transition: opacity .15s, transform .1s;
+      cursor: pointer;
+    }
+    .btn:hover { opacity: .85; transform: translateY(-1px); text-decoration: none; }
+    .btn-primary { background: var(--accent); color: #0d1117; }
+    .btn-outline { border: 1px solid var(--border); background: var(--bg3); color: var(--text); }
+
+    .install-box {
+      display: inline-flex; align-items: center; gap: .75rem;
+      margin-top: 2.5rem; padding: .75rem 1.25rem;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem; color: var(--muted);
+    }
+    .install-box span { color: var(--accent2); }
+    .copy-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); padding: 0; font-size: .85rem;
+      transition: color .15s;
+    }
+    .copy-btn:hover { color: var(--text); }
+
+    /* ── SECTION ──────────────────────────────────────────── */
+    section { padding: 5rem 1.5rem; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-size: .8rem; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: .75rem;
+    }
+    h2 {
+      font-size: clamp(1.5rem, 3vw, 2.25rem);
+      font-weight: 700; margin-bottom: 1rem; letter-spacing: -.02em;
+    }
+    .section-sub { color: var(--muted); max-width: 580px; margin-bottom: 3rem; }
+
+    /* ── DEMO SPLIT ───────────────────────────────────────── */
+    .demo { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .demo-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;
+    }
+    @media (max-width: 768px) { .demo-grid { grid-template-columns: 1fr; } }
+    .demo-text h2 { margin-bottom: .75rem; }
+    .demo-text p { color: var(--muted); margin-bottom: 1rem; }
+    .demo-step {
+      display: flex; gap: .75rem; align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    .step-num {
+      flex-shrink: 0; width: 24px; height: 24px;
+      border-radius: 50%; background: var(--accent);
+      color: #0d1117; font-size: .75rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: .15rem;
+    }
+    .step-text { color: var(--muted); font-size: .95rem; }
+    .step-text strong { color: var(--text); }
+
+    /* ── CODE BLOCK ───────────────────────────────────────── */
+    .code-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .code-header {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .6rem 1rem; border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #ffbd2e; }
+    .dot-g { background: #28c940; }
+    .code-filename { margin-left: .5rem; font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: var(--muted); }
+    pre {
+      padding: 1.25rem; font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; line-height: 1.7; overflow-x: auto;
+    }
+    .kw  { color: #ff7b72; }
+    .str { color: #a5d6ff; }
+    .val { color: #79c0ff; }
+    .cmt { color: #8b949e; }
+    .key { color: #7ee787; }
+    .cmd { color: var(--accent2); }
+    .prm { color: var(--accent); }
+
+    /* ── FEATURES GRID ────────────────────────────────────── */
+    .features { background: var(--bg); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      padding: 1.5rem; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg2);
+      transition: border-color .2s, transform .2s;
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .feature-icon { font-size: 1.5rem; margin-bottom: .75rem; }
+    .feature-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: .4rem; }
+    .feature-card p { font-size: .88rem; color: var(--muted); line-height: 1.55; }
+
+    /* ── INTEGRATIONS ─────────────────────────────────────── */
+    .integrations { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .int-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+    .int-card {
+      padding: 1.5rem; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg);
+    }
+    .int-card h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
+    .int-badge {
+      font-size: .7rem; padding: .15rem .5rem; border-radius: 4px;
+      background: rgba(88,166,255,.12); color: var(--accent); font-weight: 500;
+    }
+
+    /* ── CONTRIBUTE ───────────────────────────────────────── */
+    .contribute { background: var(--bg); }
+    .contrib-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.25rem;
+    }
+    .contrib-card {
+      padding: 1.5rem; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg2);
+    }
+    .contrib-card h3 { font-size: .95rem; font-weight: 600; margin-bottom: .5rem; }
+    .contrib-card p { font-size: .87rem; color: var(--muted); }
+    .contrib-card a { color: var(--accent); font-size: .87rem; }
+
+    /* ── FOOTER ───────────────────────────────────────────── */
+    footer {
+      text-align: center; padding: 3rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted); font-size: .875rem;
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+
+    /* ── UTILS ────────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 0; }
+    .text-center { text-align: center; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">scrap<span>it</span></div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#integrations">Integrations</a>
+    <a href="#contribute">Contribute</a>
+  </div>
+  <a class="nav-gh btn-outline btn" href="https://github.com/joaobenedetmachado/scrapit" target="_blank">
+    <svg height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    GitHub
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">Open Source · MIT License</div>
+  <h1>Scrape any website<br /><span>with just a YAML</span></h1>
+  <p class="hero-sub">
+    Define your target in a config file. Scrapit handles fetching, parsing,
+    transforming, validating, and storing — no boilerplate required.
+  </p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="https://github.com/joaobenedetmachado/scrapit" target="_blank">Get started →</a>
+    <a class="btn btn-outline" href="https://github.com/joaobenedetmachado/scrapit/issues?q=label%3A%22good+first+issue%22" target="_blank">Good first issues</a>
+  </div>
+  <div class="install-box">
+    <span>$</span> pip install -r requirements.txt
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('pip install -r requirements.txt');this.textContent='✓';setTimeout(()=>this.textContent='⎘',1500)">⎘</button>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="demo" id="demo">
+  <div class="container">
+    <div class="demo-grid">
+      <div class="demo-text">
+        <div class="section-label">How it works</div>
+        <h2>Write YAML.<br/>Get data.</h2>
+        <div class="demo-step">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Describe your target</strong> — define the site, CSS selectors, and what to do with the data in a YAML file.</div>
+        </div>
+        <div class="demo-step">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Run the CLI</strong> — one command fetches, parses, transforms, validates, and saves.</div>
+        </div>
+        <div class="demo-step">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>Pick your output</strong> — JSON, CSV, SQLite, or MongoDB. All from the same directive.</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="code-card">
+          <div class="code-header">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="code-filename">directives/product.yaml</span>
+          </div>
+          <pre><span class="key">site</span>: <span class="str">https://books.toscrape.com/catalogue/a-light-in-the-attic_1000</span>
+<span class="key">use</span>: <span class="val">beautifulsoup</span>
+
+<span class="key">scrape</span>:
+  <span class="key">title</span>:
+    - <span class="str">'h1'</span>
+    - <span class="key">attr</span>: <span class="val">text</span>
+  <span class="key">price</span>:
+    - <span class="str">'p.price_color'</span>
+    - <span class="key">attr</span>: <span class="val">text</span>
+  <span class="key">rating</span>:
+    - <span class="str">'p.star-rating'</span>
+    - <span class="key">attr</span>: <span class="val">class</span>
+
+<span class="key">transform</span>:
+  <span class="key">price</span>:
+    - <span class="val">strip</span>
+    - <span class="key">replace</span>: {<span class="str">"£"</span>: <span class="str">""</span>}
+    - <span class="val">float</span>
+  <span class="key">rating</span>:
+    - <span class="val">last</span>    <span class="cmt"># "star-rating Three" → "Three"</span>
+
+<span class="key">validate</span>:
+  <span class="key">price</span>:
+    <span class="key">required</span>: <span class="val">true</span>
+    <span class="key">type</span>: <span class="val">float</span>
+    <span class="key">min</span>: <span class="val">0</span></pre>
+        </div>
+
+        <div class="code-card" style="margin-top:1rem;">
+          <div class="code-header">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <span class="code-filename">terminal</span>
+          </div>
+          <pre><span class="cmd">$</span> python -m scraper.main <span class="prm">scrape</span> product <span class="prm">--json</span>
+
+<span class="cmt">{
+  "title": "A Light in the Attic",
+  "price": 51.77,
+  "rating": "Three",
+  "url": "https://books.toscrape.com/...",
+  "timestamp": "2026-03-04 12:00:00"
+}</span>
+
+<span class="cmd">→</span> saved: output/product.json</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-label">Features</div>
+    <h2>Everything you need,<br/>nothing you don't</h2>
+    <p class="section-sub">All configured from YAML. No code required for new scraping targets.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Two backends</h3>
+        <p>BeautifulSoup for fast static pages. Playwright for JavaScript-rendered sites. Switch with one line in the YAML.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <h3>Pagination</h3>
+        <p>Follow "next page" links automatically. Define the selector once, Scrapit handles the rest up to <code>max_pages</code>.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🕷️</div>
+        <h3>Spider mode</h3>
+        <p>Discover and scrape all linked pages from an index. Set <code>mode: spider</code> and a link selector — done.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3>Transform pipeline</h3>
+        <p>15+ declarative transforms: <code>strip</code>, <code>regex</code>, <code>float</code>, <code>replace</code>, <code>slugify</code>, <code>template</code> and more. All in YAML.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✅</div>
+        <h3>Validation</h3>
+        <p>Ensure data quality with per-field rules: <code>required</code>, <code>type</code>, <code>min/max</code>, <code>pattern</code>, <code>in</code>.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <h3>4 storage backends</h3>
+        <p>JSON, CSV (append mode), SQLite (zero-config), and MongoDB. Pick one per run with a CLI flag.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>HTTP cache</h3>
+        <p>File-based cache with configurable TTL. Stop hitting the site on every dev iteration.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <h3>Change detection</h3>
+        <p>Diff results against previous runs. Fire a webhook automatically when content changes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔌</div>
+        <h3>Hook system</h3>
+        <p>Register callbacks for <code>before_scrape</code>, <code>after_scrape</code>, <code>on_error</code>, <code>on_change</code>. Extend without forking.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTEGRATIONS -->
+<section class="integrations" id="integrations">
+  <div class="container">
+    <div class="section-label">AI Integrations</div>
+    <h2>Plug into any AI agent</h2>
+    <p class="section-sub">Use Scrapit as a tool in LangChain, CrewAI, LangGraph, or LlamaIndex — your agent gets the ability to scrape the web on demand.</p>
+
+    <div class="int-grid">
+      <div class="int-card">
+        <h3>LangChain / CrewAI <span class="int-badge">Tool</span></h3>
+        <div class="code-card">
+          <pre><span class="kw">from</span> scraper.integrations.langchain <span class="kw">import</span> ScrapitTool
+
+tools = [ScrapitTool()]
+
+<span class="cmt"># plug into any LangChain agent</span>
+agent = initialize_agent(
+  tools=tools,
+  llm=ChatOpenAI(model=<span class="str">"gpt-4o"</span>),
+  agent=AgentType.OPENAI_FUNCTIONS,
+)</pre>
+        </div>
+      </div>
+
+      <div class="int-card">
+        <h3>LlamaIndex <span class="int-badge">RAG</span></h3>
+        <div class="code-card">
+          <pre><span class="kw">from</span> scraper.integrations.llamaindex <span class="kw">import</span> ScrapitReader
+
+reader = ScrapitReader()
+docs = reader.load_data(url=<span class="str">"https://example.com"</span>)
+
+index = VectorStoreIndex.from_documents(docs)
+engine = index.as_query_engine()
+engine.query(<span class="str">"Summarize the main points."</span>)</pre>
+        </div>
+      </div>
+
+      <div class="int-card">
+        <h3>Quick API <span class="int-badge">No YAML needed</span></h3>
+        <div class="code-card">
+          <pre><span class="kw">from</span> scraper.integrations <span class="kw">import</span> scrape_url
+
+<span class="cmt"># clean LLM-ready text, no config needed</span>
+text = scrape_url(<span class="str">"https://example.com"</span>)
+
+<span class="cmt"># or run a full directive</span>
+<span class="kw">from</span> scraper.integrations <span class="kw">import</span> scrape_directive
+data = scrape_directive(<span class="str">"wikipedia"</span>)</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTRIBUTE -->
+<section class="contribute" id="contribute">
+  <div class="container">
+    <div class="section-label">Contributing</div>
+    <h2>Built in public.<br/>Open to everyone.</h2>
+    <p class="section-sub">All contributions are welcome — code, directives, docs, or just opening an issue.</p>
+
+    <div class="contrib-grid">
+      <div class="contrib-card">
+        <h3>🐛 Found a bug?</h3>
+        <p>Open an issue using the bug report template. Include your directive YAML and the error message.</p><br/>
+        <a href="https://github.com/joaobenedetmachado/scrapit/issues/new?template=bug_report.md" target="_blank">Report a bug →</a>
+      </div>
+      <div class="contrib-card">
+        <h3>✨ Good first issues</h3>
+        <p>10 issues open right now — new transforms, directives for popular sites (Reddit, IMDb, PyPI), and adding tests.</p><br/>
+        <a href="https://github.com/joaobenedetmachado/scrapit/issues?q=label%3A%22good+first+issue%22" target="_blank">View open issues →</a>
+      </div>
+      <div class="contrib-card">
+        <h3>📄 Share a directive</h3>
+        <p>Got a working YAML for a site you scrape? Share it — it helps everyone and is the easiest way to contribute.</p><br/>
+        <a href="https://github.com/joaobenedetmachado/scrapit/issues/new?template=new_directive.md" target="_blank">Share a directive →</a>
+      </div>
+      <div class="contrib-card">
+        <h3>📖 Read the guide</h3>
+        <p>Full setup instructions, conventions, and how to add a transform, storage backend, or new directive.</p><br/>
+        <a href="https://github.com/joaobenedetmachado/scrapit/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    <strong>Scrapit</strong> &nbsp;·&nbsp;
+    <a href="https://github.com/joaobenedetmachado/scrapit" target="_blank">GitHub</a> &nbsp;·&nbsp;
+    <a href="https://github.com/joaobenedetmachado/scrapit/blob/main/LICENSE" target="_blank">MIT License</a> &nbsp;·&nbsp;
+    <a href="https://github.com/joaobenedetmachado/scrapit/blob/main/CONTRIBUTING.md" target="_blank">Contributing</a>
+  </p>
+  <p style="margin-top:.5rem; font-size:.8rem;">Made with ☕ by <a href="https://github.com/joaobenedetmachado" target="_blank">João Benedet Machado</a></p>
+</footer>
+
+</body>
+</html>
