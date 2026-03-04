@@ -50,6 +50,9 @@ jobs:
           python -c "import scraper.storage.diff"
           python -c "import scraper.cache"
           python -c "import scraper.notifications"
+          python -c "import scraper.integrations"
+          python -c "import scraper.integrations.langchain"
+          python -c "import scraper.integrations.llamaindex"
 
       - name: Validate example directives (YAML parse)
         run: |

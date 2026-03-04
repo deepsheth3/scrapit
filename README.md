@@ -376,6 +376,84 @@ Available events: `before_scrape`, `after_scrape`, `on_error`, `on_save`, `on_ch
 
 ---
 
+## AI Agent Integrations
+
+Scrapit can be used as a tool in any AI agent framework — give an agent the ability to scrape the web on demand.
+
+### LangChain / CrewAI / LangGraph
+
+```python
+from scraper.integrations.langchain import ScrapitTool, ScrapitDirectiveTool
+
+# General tool — agent passes any URL, gets back clean text
+tools = [ScrapitTool()]
+
+# Directive tool — agent runs a pre-defined scrape config
+tools = [ScrapitDirectiveTool(directive="wikipedia")]
+
+# Use with a LangChain agent
+from langchain.agents import initialize_agent, AgentType
+from langchain_openai import ChatOpenAI
+
+agent = initialize_agent(
+    tools=tools,
+    llm=ChatOpenAI(model="gpt-4o"),
+    agent=AgentType.OPENAI_FUNCTIONS,
+)
+agent.run("What does the Wikipedia article on Scarlet Macaw say?")
+```
+
+Works with **CrewAI** out of the box — pass `ScrapitTool()` to any `Agent(tools=[...])`.
+
+### LlamaIndex (RAG pipelines)
+
+```python
+from scraper.integrations.llamaindex import ScrapitReader
+from llama_index.core import VectorStoreIndex
+
+reader = ScrapitReader()
+
+# Load from a plain URL
+docs = reader.load_data(url="https://example.com/article")
+
+# Load using a directive (structured data)
+docs = reader.load_data(directive="wikipedia")
+
+# Load multiple URLs at once
+docs = reader.load_data(urls=["https://site1.com", "https://site2.com"])
+
+# Build a RAG index
+index = VectorStoreIndex.from_documents(docs)
+query_engine = index.as_query_engine()
+response = query_engine.query("Summarize the main points.")
+```
+
+### Quick programmatic API (no YAML needed)
+
+```python
+from scraper.integrations import scrape_url, scrape_directive
+
+# Get clean text from any URL — ready to feed into an LLM
+text = scrape_url("https://news.ycombinator.com")
+
+# Run a directive and get structured data
+data = scrape_directive("wikipedia")
+```
+
+### Installation
+
+```bash
+# For LangChain
+pip install langchain-core
+
+# For LlamaIndex
+pip install llama-index-core
+```
+
+Scrapit itself has no hard dependency on either framework — the imports are lazy.
+
+---
+
 ## Async Queue (RabbitMQ)
 
 Send a directive to the background queue:
