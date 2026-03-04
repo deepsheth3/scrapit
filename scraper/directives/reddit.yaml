@@ -1,0 +1,23 @@
+site: https://old.reddit.com/r/python
+use: beautifulsoup
+
+cache:
+  ttl: 300
+
+scrape:
+  posts:
+    - 'a.title'
+    - attr: 'text'
+    - all: true
+    - transform: [strip]
+
+  links:
+    - 'a.title'
+    - attr: 'href'
+    - all: true
+
+  scores:
+    - 'div.score.unvoted'
+    - attr: 'text'
+    - all: true
+    - transform: [strip]
