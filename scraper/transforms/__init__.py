@@ -194,6 +194,20 @@ def _truncate(value, length, **__):
     return truncated + "..."
 
 
+@_t("slugify")
+def _slugify(value, _, **__):
+    if not isinstance(value, str):
+        return value
+    # Convert to lowercase
+    value = value.lower()
+    # Remove special characters (except alphanumeric, spaces, hyphens)
+    value = re.sub(r"[^\w\s-]", "", value)
+    # Replace spaces and underscores with hyphens
+    value = re.sub(r"[\s_-]+", "-", value)
+    # Strip leading/trailing hyphens
+    return value.strip("-")
+
+
 @_t("template")
 def _template(value, pattern, ctx=None, **__):
     """Replace {value} with the field value and {field} with other fields."""
